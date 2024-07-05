@@ -1,0 +1,17 @@
+__pycache__
+.DS_Store
+._.DS_Store
+._*
+# Ignore specific directories
+data/
+dataset/
+p2rank/
+packages/
+saved_models/
+tankbind/apr22_pdbbind_gvp_pocket_radius20/
+tankbind/predictions/
+tankbind/wandb/
+tankbind/result/
+# Ignore specific files
+*.log
+__pycache__/
