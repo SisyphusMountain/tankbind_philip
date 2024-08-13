@@ -1,6 +1,6 @@
 
 import torch
-from metrics import *
+from tankbind_philip.TankBind.tankbind.metrics import *
 import numpy as np
 import pandas as pd
 import scipy.spatial
@@ -36,8 +36,8 @@ def get_protein_edge_features_and_index(protein_edge_index, protein_edge_s, prot
     input_protein_edge_feature_idx = []
     new_node_index = np.cumsum(keepNode) - 1
     keepEdge = keepNode[protein_edge_index].min(axis=0)
-    new_edge_inex = new_node_index[protein_edge_index]
-    input_edge_idx = torch.tensor(new_edge_inex[:, keepEdge], dtype=torch.long)
+    new_edge_index = new_node_index[protein_edge_index]
+    input_edge_idx = torch.tensor(new_edge_index[:, keepEdge], dtype=torch.long)
     input_protein_edge_s = protein_edge_s[keepEdge]
     input_protein_edge_v = protein_edge_v[keepEdge]
     return input_edge_idx, input_protein_edge_s, input_protein_edge_v
@@ -72,7 +72,7 @@ def construct_data_from_graph_gvp(protein_node_xyz, protein_seq, protein_node_s,
                                   protein_node_v, protein_edge_index, protein_edge_s, protein_edge_v,
                                  coords, compound_node_features, input_atom_edge_list, 
                                  input_atom_edge_attr_list, includeDisMap=True, contactCutoff=8.0, pocket_radius=20, interactionThresholdDistance=10, compoundMode=1, 
-                                 add_noise_to_com=None, use_whole_protein=False, use_compound_com_as_pocket=True, chosen_pocket_com=None):
+                                 add_noise_to_com=None, use_whole_protein=False, use_compound_com_as_pocket=True, chosen_pocket_com=None, esm_embedding=None):
     n_node = protein_node_xyz.shape[0]
     n_compound_node = coords.shape[0]
     # centroid instead of com. 
@@ -104,6 +104,8 @@ def construct_data_from_graph_gvp(protein_node_xyz, protein_seq, protein_node_s,
     data.y = torch.tensor(y_contact, dtype=torch.float).flatten()
     data.seq = protein_seq[keepNode]
     data['protein'].node_s = protein_node_s[keepNode] # [num_protein_nodes, num_protein_feautre]
+    if esm_embedding is not None:
+        data["protein"].node_s = torch.cat([data["protein"].node_s, esm_embedding[keepNode]], dim=1)
     data['protein'].node_v = protein_node_v[keepNode]
     data['protein', 'p2p', 'protein'].edge_index = input_edge_idx
     data['protein', 'p2p', 'protein'].edge_s = input_protein_edge_s
